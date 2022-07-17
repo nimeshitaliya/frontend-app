@@ -1,0 +1,76 @@
+name: Release Frontend Server
+
+on: [push, pull_request]
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: docker.io
+
+jobs:
+  cross-compile:
+    name: cross-compile
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+        cache: 'npm'
+
+    - name: Install packages
+      run: |
+        make install
+
+    - name: Build packages
+      run: |
+        make build
+
+    - name: Uploading binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: server-package
+        path: |
+          ./dist/*
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [cross-compile]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Downloading server-package
+      uses: actions/download-artifact@v3
+      with:
+        name: server-package
+        path: ./dist
+
+    - name: Build the Docker image
+      run: |
+        make docker-frontend-server
+
+    - name: Tag image
+      if: github.event_name != 'pull_request'
+      run: |
+        make docker-tag REPO_TAG=${GITHUB_REF#refs/heads/}
+
+    - name: Log into registry ${{ env.REGISTRY }}
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        logout: true
+
+    - name: Push Image to ${{ env.REGISTRY }}
+      if: github.event_name != 'pull_request'
+      run:
+        make docker-push REPO_TAG=${GITHUB_REF#refs/heads/}
