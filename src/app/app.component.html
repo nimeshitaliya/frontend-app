@@ -1,0 +1,18 @@
+<div>
+  <div style="background-color:powderblue; padding:5px">
+    You are using Feat1
+  </div>
+  <div style="margin-top:20px; font-size:20px;">
+    <label for="fname">Enter the URL:</label> &nbsp;&nbsp;
+    <input type="text" id="fname" name="fname" style="height:20px;" [(ngModel)]="url"><br><br>
+    <button type="button" (click)="api_call()"> Get Response</button>
+  </div>
+  <div style="margin-top:20px; font-size:20px;">
+    <div>
+      <h3>Response</h3>
+    </div>
+    <div [ngStyle]="{'color': isError ? 'red':'black'}">
+      {{response | json}}
+    </div>
+  </div>
+</div>
