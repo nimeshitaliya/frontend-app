@@ -20,7 +20,7 @@ export class AppComponent implements OnInit {
 
   async api_call() {
     this.isError = false;
-    await (await this.make_call("http://localhost:5000" + this.url)).subscribe((data) => {
+    await (await this.make_call("http://API_SERVER_URL" + this.url)).subscribe((data) => {
       this.response = data;
     }, (err) => {
       this.isError = true;
