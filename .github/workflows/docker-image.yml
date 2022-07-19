@@ -1,6 +1,6 @@
 name: Release Frontend Server
 
-on: [push, pull_request]
+on: push
 
 concurrency:
   group: build-${{ github.event.pull_request.number || github.ref }}
